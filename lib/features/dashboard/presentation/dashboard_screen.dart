@@ -238,17 +238,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 1100 ? 3 : 2;
+        final availableWidth = constraints.maxWidth;
+        final columns = availableWidth >= 1100
+            ? 3
+            : availableWidth >= 560
+                ? 2
+                : 1;
+        final pagePadding = availableWidth < 560
+            ? 16.0
+            : availableWidth < 900
+                ? 22.0
+                : 35.0;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(35),
+          padding: EdgeInsets.all(pagePadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Marketplace overview',
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: availableWidth < 420 ? 21 : 25,
                   fontWeight: FontWeight.bold,
                   color: darkBrown,
                 ),
@@ -261,7 +271,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: muted,
                 ),
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: availableWidth < 560 ? 20 : 28),
               _pendingLocationCard(),
               const SizedBox(height: 25),
               const Text(
@@ -277,7 +287,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisCount: columns,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                mainAxisExtent: 215,
+                mainAxisExtent: availableWidth < 560 ? 190 : 215,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [

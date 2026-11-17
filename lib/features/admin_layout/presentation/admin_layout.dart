@@ -140,7 +140,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     );
   }
 
-  Widget _sidebar() {
+  Widget _sidebar({bool inDrawer = false}) {
     return Container(
       width: 245,
       color: Colors.white,
@@ -148,27 +148,16 @@ class _AdminLayoutState extends State<AdminLayout> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.egg_alt_outlined,
-                color: orange,
-                size: 37,
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                'GeoEgg',
-                style: TextStyle(
-                  color: darkBrown,
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Center(
+            child: Image.asset(
+              'assets/images/geoegg_logo.png',
+              width: 150,
+              height: 132,
+              fit: BoxFit.contain,
+            ),
           ),
           const SizedBox(height: 5),
-          const Padding(
-            padding: EdgeInsets.only(left: 47),
+          const Center(
             child: Text(
               'CAVD ADMINISTRATION',
               style: TextStyle(
@@ -193,7 +182,7 @@ class _AdminLayoutState extends State<AdminLayout> {
             ),
           ),
           ...List.generate(_menuLabels.length, (index) {
-            return _sidebarItem(index);
+            return _sidebarItem(index, inDrawer: inDrawer);
           }),
           const Spacer(),
           const Divider(color: Color(0xFFF0E5DE)),
@@ -201,6 +190,7 @@ class _AdminLayoutState extends State<AdminLayout> {
             7,
             label: 'Log Out',
             icon: Icons.logout,
+            inDrawer: inDrawer,
           ),
         ],
       ),
@@ -211,6 +201,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     int index, {
     String? label,
     IconData? icon,
+    bool inDrawer = false,
   }) {
     final selected = _selectedIndex == index;
     final itemLabel = label ?? _menuLabels[index];
@@ -283,6 +274,9 @@ class _AdminLayoutState extends State<AdminLayout> {
             setState(() {
               _selectedIndex = index;
             });
+            if (inDrawer && mounted) {
+              Navigator.of(context).pop();
+            }
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -314,76 +308,128 @@ class _AdminLayoutState extends State<AdminLayout> {
     );
   }
 
+  Widget _topBar({required bool compact}) {
+    return Container(
+      height: 76,
+      padding: EdgeInsets.symmetric(horizontal: compact ? 16 : 35),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFF0E5DE)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _menuLabels[_selectedIndex],
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.bold,
+                color: darkBrown,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Icon(Icons.account_circle_outlined, color: orange, size: 29),
+          if (!compact || MediaQuery.sizeOf(context).width >= 420) ...[
+            const SizedBox(width: 10),
+            const Flexible(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'CAVD Administrator',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: darkBrown,
+                    ),
+                  ),
+                  Text(
+                    'Administrator',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11, color: muted),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: cream,
-      body: Row(
-        children: [
-          _sidebar(),
-          Expanded(
-            child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Use a navigation drawer when the available width is too small
+        // to display the permanent sidebar and the page content together.
+        final compact = constraints.maxWidth < 900;
+
+        if (compact) {
+          return Scaffold(
+            backgroundColor: cream,
+            drawer: Drawer(
+              width: 280,
+              backgroundColor: Colors.white,
+              child: SafeArea(
+                child: _sidebar(inDrawer: true),
+              ),
+            ),
+            body: Column(
               children: [
                 Container(
                   height: 76,
-                  padding: const EdgeInsets.symmetric(horizontal: 35),
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     border: Border(
-                      bottom: BorderSide(
-                        color: Color(0xFFF0E5DE),
-                      ),
+                      bottom: BorderSide(color: Color(0xFFF0E5DE)),
                     ),
                   ),
                   child: Row(
                     children: [
-                      Text(
-                        _menuLabels[_selectedIndex],
-                        style: const TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.bold,
-                          color: darkBrown,
+                      Builder(
+                        builder: (drawerContext) => IconButton(
+                          tooltip: 'Open navigation menu',
+                          icon: const Icon(Icons.menu, color: darkBrown),
+                          onPressed: () => Scaffold.of(drawerContext).openDrawer(),
                         ),
                       ),
-                      const Spacer(),
-                      const Icon(
-                        Icons.account_circle_outlined,
-                        color: orange,
-                        size: 29,
-                      ),
-                      const SizedBox(width: 10),
-                      const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'CAVD Administrator',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: darkBrown,
-                            ),
-                          ),
-                          Text(
-                            'Administrator',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: muted,
-                            ),
-                          ),
-                        ],
-                      ),
+                      Expanded(child: _topBar(compact: true)),
                     ],
                   ),
                 ),
-                Expanded(
-                  child: _getSelectedScreen(),
-                ),
+                Expanded(child: _getSelectedScreen()),
               ],
             ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: cream,
+          body: Row(
+            children: [
+              _sidebar(),
+              Expanded(
+                child: Column(
+                  children: [
+                    _topBar(compact: false),
+                    Expanded(child: _getSelectedScreen()),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
