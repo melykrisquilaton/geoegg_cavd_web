@@ -373,142 +373,159 @@ class _ProducersScreenState extends State<ProducersScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(cream),
-            headingTextStyle: const TextStyle(
-              color: mutedBrown,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-            dataTextStyle: const TextStyle(
-              color: darkBrown,
-              fontSize: 13,
-            ),
-            horizontalMargin: 24,
-            columnSpacing: 35,
-            headingRowHeight: 54,
-            dataRowMinHeight: 70,
-            dataRowMaxHeight: 85,
-            columns: const [
-              DataColumn(label: Text('FARM / PRODUCER')),
-              DataColumn(label: Text('LOCATION')),
-              DataColumn(label: Text('CAPACITY')),
-              DataColumn(label: Text('STATUS')),
-              DataColumn(label: Text('ACTION')),
-            ],
-            rows: producers.map((data) {
-              final farmName = _value(
-                data['farmName'],
-                'Farm name not provided',
-              );
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final tableWidth =
+                constraints.maxWidth < 940 ? 940.0 : constraints.maxWidth;
 
-              final ownerName = _value(
-                data['ownerName'],
-                _value(data['name'], 'No owner name'),
-              );
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: tableWidth,
+                child: DataTable(
+                  headingRowColor: WidgetStateProperty.all(cream),
+                  headingTextStyle: const TextStyle(
+                    color: mutedBrown,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  dataTextStyle: const TextStyle(
+                    color: darkBrown,
+                    fontSize: 13,
+                  ),
+                  horizontalMargin: 20,
+                  columnSpacing: 20,
+                  headingRowHeight: 54,
+                  dataRowMinHeight: 70,
+                  dataRowMaxHeight: 85,
+                  columns: const [
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(2),
+                      label: Text('FARM / PRODUCER'),
+                    ),
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(2),
+                      label: Text('LOCATION'),
+                    ),
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(1.25),
+                      label: Text('CAPACITY'),
+                    ),
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(1.1),
+                      label: Text('STATUS'),
+                    ),
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(1.3),
+                      label: Text('ACTION'),
+                    ),
+                  ],
+                  rows: producers.map((data) {
+                    final farmName = _value(
+                      data['farmName'],
+                      'Farm name not provided',
+                    );
+                    final ownerName = _value(
+                      data['ownerName'],
+                      _value(data['name'], 'No owner name'),
+                    );
+                    final barangay = _value(
+                      data['barangay'],
+                      'Unknown barangay',
+                    );
+                    final city = _value(data['city'], 'Unknown city');
+                    final capacity = data['dailyProductionCapacity'];
+                    final status = _getStatus(data);
 
-              final barangay = _value(
-                data['barangay'],
-                'Unknown barangay',
-              );
-
-              final city = _value(
-                data['city'],
-                'Unknown city',
-              );
-
-              final capacity =
-                  data['dailyProductionCapacity'];
-
-              final status = _getStatus(data);
-
-              return DataRow(
-                cells: [
-                  DataCell(
-                    SizedBox(
-                      width: 210,
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: peach,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.agriculture_outlined,
-                              color: orange,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          SizedBox(
+                            width: 210,
+                            child: Row(
                               children: [
-                                Text(
-                                  farmName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: darkBrown,
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: peach,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.agriculture_outlined,
+                                    color: orange,
+                                    size: 22,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  ownerName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: mutedBrown,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        farmName,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: darkBrown,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        ownerName,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: mutedBrown,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    SizedBox(
-                      width: 160,
-                      child: Text(
-                        '$barangay, $city',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      capacity == null
-                          ? 'Not provided'
-                          : '$capacity eggs/day',
-                    ),
-                  ),
-                  DataCell(_statusChip(status)),
-                  DataCell(
-                    TextButton.icon(
-                      onPressed: () =>
-                          _showProducerDetails(context, data),
-                      icon: const Icon(
-                        Icons.visibility_outlined,
-                        size: 17,
-                      ),
-                      label: const Text('View Details'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: orange,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
+                        ),
+                        DataCell(
+                          SizedBox(
+                            width: 160,
+                            child: Text(
+                              '$barangay, $city',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            capacity == null
+                                ? 'Not provided'
+                                : '$capacity eggs/day',
+                          ),
+                        ),
+                        DataCell(_statusChip(status)),
+                        DataCell(
+                          TextButton.icon(
+                            onPressed: () =>
+                                _showProducerDetails(context, data),
+                            icon: const Icon(
+                              Icons.visibility_outlined,
+                              size: 17,
+                            ),
+                            label: const Text('View Details'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: orange,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

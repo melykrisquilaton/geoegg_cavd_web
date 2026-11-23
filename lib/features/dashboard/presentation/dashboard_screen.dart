@@ -30,41 +30,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static const darkBrown = Color(0xFF3D3029);
   static const muted = Color(0xFF887A72);
 
-  late final Stream<List<Map<String, dynamic>>> _profiles =
-      _supabase.from('profiles').stream(primaryKey: ['id']);
+  late final Stream<List<Map<String, dynamic>>> _profiles = _supabase
+      .from('profiles')
+      .stream(primaryKey: ['id']);
 
-  late final Stream<List<Map<String, dynamic>>> _listings =
-      _supabase.from('egg_listings').stream(primaryKey: ['id']);
+  late final Stream<List<Map<String, dynamic>>> _listings = _supabase
+      .from('egg_listings')
+      .stream(primaryKey: ['id']);
 
   late final Future<CavdOrderSummary> _orderSummary = CavdOrderSummary.load();
-  late final Stream<List<Map<String, dynamic>>> _locations =
-      _supabase.from('locations').stream(primaryKey: ['id']);
+  late final Stream<List<Map<String, dynamic>>> _locations = _supabase
+      .from('locations')
+      .stream(primaryKey: ['id']);
 
   late final Stream<int> _userCount = _countRows(_profiles);
 
-  late final Stream<int> _buyerCount =
-      _countRows(_profiles, (row) => row['role'] == 'buyer');
+  late final Stream<int> _buyerCount = _countRows(
+    _profiles,
+    (row) => row['role'] == 'buyer',
+  );
 
-  late final Stream<int> _sellerCount =
-      _countRows(_profiles, (row) => row['role'] == 'seller');
+  late final Stream<int> _sellerCount = _countRows(
+    _profiles,
+    (row) => row['role'] == 'seller',
+  );
 
   late final Stream<int> _listingCount = _countRows(_listings);
 
-  late final Stream<int> _orderCount =
-      _orderSummary.then((summary) => summary.total).asStream();
-  late final Stream<int> _pendingOrderCount =
-      _orderSummary.then((summary) => summary.byStatus['pending'] ?? 0).asStream();
-  late final Stream<int> _pendingLocationCount =
-      _countRows(_locations, (row) => row['status'] == 'pending');
+  late final Stream<int> _orderCount = _orderSummary
+      .then((summary) => summary.total)
+      .asStream();
+  late final Stream<int> _pendingOrderCount = _orderSummary
+      .then((summary) => summary.byStatus['pending'] ?? 0)
+      .asStream();
+  late final Stream<int> _pendingLocationCount = _countRows(
+    _locations,
+    (row) => row['status'] == 'pending',
+  );
 
   Stream<int> _countRows(
     Stream<List<Map<String, dynamic>>> rows, [
     bool Function(Map<String, dynamic>)? where,
   ]) {
     return rows.map(
-      (list) => where == null
-          ? list.length
-          : list.where(where).length,
+      (list) => where == null ? list.length : list.where(where).length,
     );
   }
 
@@ -99,159 +108,157 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(22),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFF0E5DE)),
           ),
           child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(11),
-                decoration: BoxDecoration(
-                  color: iconBackground,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: orange, size: 23),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(9),
+                    decoration: BoxDecoration(
+                      color: iconBackground,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, color: orange, size: 21),
+                  ),
+                  const Spacer(),
+                  const Icon(
+                    Icons.trending_up,
+                    color: Color(0xFFB9A69B),
+                    size: 19,
+                  ),
+                ],
               ),
-              const Spacer(),
-              const Icon(
-                Icons.trending_up,
-                color: Color(0xFFB9A69B),
-                size: 19,
+              const SizedBox(height: 14),
+              _liveCount(stream, size: 28),
+              const SizedBox(height: 4),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: darkBrown,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                description,
+                style: const TextStyle(fontSize: 12, color: muted),
               ),
             ],
           ),
-          const SizedBox(height: 22),
-          _liveCount(stream),
-          const SizedBox(height: 5),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: darkBrown,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 12,
-              color: muted,
-            ),
-          ),
-        ],
-      ),
         ),
       ),
     );
   }
 
   Widget _pendingLocationCard() {
-  return Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: widget.onViewLocations,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(22),
-        decoration: BoxDecoration(
-          color: peach,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFF1D1BF),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: widget.onViewLocations,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: peach,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFF1D1BF)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(11),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.location_on_outlined,
+                  color: orange,
+                  size: 25,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Location applications',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: darkBrown,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Location requests waiting for administrator review.',
+                      style: TextStyle(fontSize: 13, color: muted),
+                    ),
+                    const SizedBox(height: 7),
+                    StreamBuilder<int>(
+                      stream: _pendingLocationCount,
+                      builder: (context, snapshot) {
+                        final count = snapshot.data;
+
+                        return Text(
+                          count == null
+                              ? 'Loading applications...'
+                              : '$count waiting for review',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: orange,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 17, color: orange),
+            ],
           ),
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(13),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.location_on_outlined,
-                color: orange,
-                size: 27,
-              ),
-            ),
-            const SizedBox(width: 18),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Location applications',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: darkBrown,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    'Location requests waiting for administrator review.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: muted,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  StreamBuilder<int>(
-                    stream: _pendingLocationCount,
-                    builder: (context, snapshot) {
-                      final count = snapshot.data;
-
-                      return Text(
-                        count == null
-                            ? 'Loading applications...'
-                            : '$count waiting for review',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: orange,
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 17,
-              color: orange,
-            ),
-          ],
-        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
+        final availableHeight = constraints.maxHeight;
         final columns = availableWidth >= 1100
             ? 3
             : availableWidth >= 560
-                ? 2
-                : 1;
+            ? 2
+            : 1;
         final pagePadding = availableWidth < 560
             ? 16.0
             : availableWidth < 900
-                ? 22.0
-                : 35.0;
+            ? 22.0
+            : 35.0;
+        final verticalPadding = availableWidth < 560
+            ? 16.0
+            : availableHeight < 760
+            ? 18.0
+            : 28.0;
+        final compactHeight = availableHeight < 760;
 
         return SingleChildScrollView(
-          padding: EdgeInsets.all(pagePadding),
+          padding: EdgeInsets.symmetric(
+            horizontal: pagePadding,
+            vertical: verticalPadding,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -266,14 +273,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 7),
               const Text(
                 'Monitor GeoEgg marketplace activities and statistics.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: muted,
-                ),
+                style: TextStyle(fontSize: 14, color: muted),
               ),
-              SizedBox(height: availableWidth < 560 ? 20 : 28),
+              SizedBox(height: availableWidth < 560 ? 18 : 22),
               _pendingLocationCard(),
-              const SizedBox(height: 25),
+              SizedBox(height: compactHeight ? 16 : 22),
               const Text(
                 'Platform Statistics',
                 style: TextStyle(
@@ -282,12 +286,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: darkBrown,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               GridView.count(
                 crossAxisCount: columns,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                mainAxisExtent: availableWidth < 560 ? 190 : 215,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 12,
+                mainAxisExtent: availableWidth < 900
+                    ? 190
+                    : compactHeight
+                    ? 176
+                    : 190,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [

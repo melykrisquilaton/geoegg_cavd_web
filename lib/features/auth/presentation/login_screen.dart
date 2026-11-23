@@ -132,19 +132,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Icon(
-                        Icons.egg_alt_outlined,
-                        size: 64,
-                        color: orange,
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'GeoEgg',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: darkBrown,
+                      Center(
+                        child: Image.asset(
+                          'assets/images/geoegg_logo.png',
+                          width: 170,
+                          height: 155,
+                          fit: BoxFit.contain,
                         ),
                       ),
                       const SizedBox(height: 4),

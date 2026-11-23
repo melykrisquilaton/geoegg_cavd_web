@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,10 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 class UsersScreen extends StatefulWidget {
   final String initialFilter;
 
-  const UsersScreen({
-    super.key,
-    this.initialFilter = 'all',
-  });
+  const UsersScreen({super.key, this.initialFilter = 'all'});
 
   @override
   State<UsersScreen> createState() => _UsersScreenState();
@@ -30,7 +26,7 @@ class _UsersScreenState extends State<UsersScreen> {
         ? widget.initialFilter
         : 'all';
   }
-  
+
   final Set<String> _approvalsInProgress = {};
 
   static const cream = Color(0xFFFFF8F4);
@@ -59,9 +55,7 @@ class _UsersScreenState extends State<UsersScreen> {
       return '';
     }
 
-    return (data['seller_status'] ?? 'pending')
-        .toString()
-        .toLowerCase();
+    return (data['seller_status'] ?? 'pending').toString().toLowerCase();
   }
 
   Color _roleColor(String role) {
@@ -92,18 +86,13 @@ class _UsersScreenState extends State<UsersScreen> {
     final color = _statusColor(status);
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 11,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        status.isEmpty
-            ? '—'
-            : status[0].toUpperCase() + status.substring(1),
+        status.isEmpty ? '—' : status[0].toUpperCase() + status.substring(1),
         style: TextStyle(
           color: color,
           fontSize: 12,
@@ -117,18 +106,13 @@ class _UsersScreenState extends State<UsersScreen> {
     final color = _roleColor(role);
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 11,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        role.isEmpty
-            ? 'Unknown'
-            : role[0].toUpperCase() + role.substring(1),
+        role.isEmpty ? 'Unknown' : role[0].toUpperCase() + role.substring(1),
         style: TextStyle(
           color: color,
           fontSize: 12,
@@ -148,9 +132,7 @@ class _UsersScreenState extends State<UsersScreen> {
         radius: 22,
         backgroundColor: color.withValues(alpha: 0.12),
         child: Icon(
-          role == 'seller'
-              ? Icons.storefront_outlined
-              : Icons.person_outline,
+          role == 'seller' ? Icons.storefront_outlined : Icons.person_outline,
           color: color,
         ),
       );
@@ -159,9 +141,7 @@ class _UsersScreenState extends State<UsersScreen> {
     if (photoPath.isEmpty) return fallback();
 
     return FutureBuilder<String>(
-      future: supabase.storage
-          .from('avatars')
-          .createSignedUrl(photoPath, 3600),
+      future: supabase.storage.from('avatars').createSignedUrl(photoPath, 3600),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.hasError) {
           return fallback();
@@ -186,16 +166,9 @@ class _UsersScreenState extends State<UsersScreen> {
       style: OutlinedButton.styleFrom(
         backgroundColor: selected ? peach : Colors.white,
         foregroundColor: selected ? orange : muted,
-        side: BorderSide(
-          color: selected ? orange : const Color(0xFFE8DCD4),
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 22,
-          vertical: 16,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        side: BorderSide(color: selected ? orange : const Color(0xFFE8DCD4)),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Text(
         label,
@@ -210,8 +183,7 @@ class _UsersScreenState extends State<UsersScreen> {
     required String userId,
     required String newStatus,
   }) async {
-    if (newStatus == 'approved' &&
-        _approvalsInProgress.contains(userId)) {
+    if (newStatus == 'approved' && _approvalsInProgress.contains(userId)) {
       return;
     }
 
@@ -227,9 +199,7 @@ class _UsersScreenState extends State<UsersScreen> {
 
         return AlertDialog(
           title: const Text('Reject Seller'),
-          content: const Text(
-            'Are you sure you want to reject this seller?',
-          ),
+          content: const Text('Are you sure you want to reject this seller?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
@@ -250,18 +220,14 @@ class _UsersScreenState extends State<UsersScreen> {
 
     if (confirmed != true || !mounted) return;
 
-    if (newStatus == 'approved' &&
-        !_approvalsInProgress.add(userId)) {
+    if (newStatus == 'approved' && !_approvalsInProgress.add(userId)) {
       return;
     }
 
     try {
       await supabase.rpc(
         'set_seller_status',
-        params: {
-          'p_seller_id': userId,
-          'p_status': newStatus,
-        },
+        params: {'p_seller_id': userId, 'p_status': newStatus},
       );
 
       if (!mounted) return;
@@ -427,10 +393,7 @@ class _UsersScreenState extends State<UsersScreen> {
           const SizedBox(height: 4),
           SelectableText(
             value,
-            style: const TextStyle(
-              color: darkBrown,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: darkBrown, fontSize: 14),
           ),
         ],
       ),
@@ -445,91 +408,109 @@ class _UsersScreenState extends State<UsersScreen> {
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: const Color(0xFFF0E5DE)),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          headingRowColor: WidgetStateProperty.all(cream),
-          columnSpacing: 35,
-          horizontalMargin: 22,
-          columns: const [
-            DataColumn(label: Text('USER')),
-            DataColumn(label: Text('EMAIL')),
-            DataColumn(label: Text('ROLE')),
-            DataColumn(label: Text('SELLER STATUS')),
-            DataColumn(label: Text('ACTION')),
-          ],
-          rows: users.map((data) {
-            final name = (data['name'] ?? 'Unknown user').toString();
-            final email = (data['email'] ?? 'No email').toString();
-            final role = (data['role'] ?? '').toString().toLowerCase();
-            final status = _sellerStatus(data);
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final tableWidth = constraints.maxWidth < 900
+              ? 900.0
+              : constraints.maxWidth;
 
-            return DataRow(
-              cells: [
-                DataCell(
-                  SizedBox(
-                    width: 170,
-                    child: Row(
-                      children: [
-                        _userAvatar(data),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            name,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: darkBrown,
-                            ),
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: tableWidth,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(cream),
+                columnSpacing: 20,
+                horizontalMargin: 18,
+                columns: const [
+                  DataColumn(
+                    columnWidth: FlexColumnWidth(2.1),
+                    label: Text('USER'),
+                  ),
+                  DataColumn(
+                    columnWidth: FlexColumnWidth(2.2),
+                    label: Text('EMAIL'),
+                  ),
+                  DataColumn(
+                    columnWidth: FlexColumnWidth(0.9),
+                    label: Text('ROLE'),
+                  ),
+                  DataColumn(
+                    columnWidth: FlexColumnWidth(1.4),
+                    label: Text('SELLER STATUS'),
+                  ),
+                  DataColumn(
+                    columnWidth: FlexColumnWidth(1.4),
+                    label: Text('ACTION'),
+                  ),
+                ],
+                rows: users.map((data) {
+                  final name = (data['name'] ?? 'Unknown user').toString();
+                  final email = (data['email'] ?? 'No email').toString();
+                  final role = (data['role'] ?? '').toString().toLowerCase();
+                  final status = _sellerStatus(data);
+
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        SizedBox(
+                          width: 170,
+                          child: Row(
+                            children: [
+                              _userAvatar(data),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: darkBrown,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 190,
-                    child: Text(
-                      email,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-                DataCell(_roleChip(role)),
-                DataCell(
-                  role == 'seller'
-                      ? _statusChip(status)
-                      : const Text('—'),
-                ),
-                DataCell(
-                  TextButton.icon(
-                    onPressed: () => _showUserDetails(data),
-                    icon: const Icon(Icons.visibility_outlined, size: 18),
-                    label: const Text('View details'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: orange,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
+                      ),
+                      DataCell(
+                        SizedBox(
+                          width: 190,
+                          child: Text(email, overflow: TextOverflow.ellipsis),
+                        ),
+                      ),
+                      DataCell(_roleChip(role)),
+                      DataCell(
+                        role == 'seller'
+                            ? _statusChip(status)
+                            : const Text('—'),
+                      ),
+                      DataCell(
+                        TextButton.icon(
+                          onPressed: () => _showUserDetails(data),
+                          icon: const Icon(Icons.visibility_outlined, size: 18),
+                          label: const Text('View details'),
+                          style: TextButton.styleFrom(foregroundColor: orange),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: _users,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: orange),
-          );
+          return const Center(child: CircularProgressIndicator(color: orange));
         }
 
         if (snapshot.hasError) {
@@ -543,16 +524,12 @@ class _UsersScreenState extends State<UsersScreen> {
           );
         }
 
-        final documents =
-            snapshot.data ?? <Map<String, dynamic>>[];
+        final documents = snapshot.data ?? <Map<String, dynamic>>[];
 
-        final filteredUsers = documents
-            .where(_matchesFilter)
-            .toList();
+        final filteredUsers = documents.where(_matchesFilter).toList();
 
         final pendingSellers = documents.where((data) {
-          return (data['role'] ?? '').toString().toLowerCase() ==
-                  'seller' &&
+          return (data['role'] ?? '').toString().toLowerCase() == 'seller' &&
               _sellerStatus(data) == 'pending';
         }).length;
 
@@ -647,11 +624,7 @@ class _UsersScreenState extends State<UsersScreen> {
                   ),
                   child: Column(
                     children: [
-                      const Icon(
-                        Icons.people_outline,
-                        size: 55,
-                        color: muted,
-                      ),
+                      const Icon(Icons.people_outline, size: 55, color: muted),
                       const SizedBox(height: 15),
                       const Text(
                         'No users found',
@@ -682,10 +655,7 @@ class _UsersScreenState extends State<UsersScreen> {
 }
 
 class _ApprovalDialog extends StatefulWidget {
-  const _ApprovalDialog({
-    required this.onCancel,
-    required this.onConfirm,
-  });
+  const _ApprovalDialog({required this.onCancel, required this.onConfirm});
 
   final VoidCallback onCancel;
   final VoidCallback onConfirm;
@@ -729,10 +699,7 @@ class _ApprovalDialogState extends State<_ApprovalDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: widget.onCancel,
-          child: const Text('Cancel'),
-        ),
+        TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
         ElevatedButton(
           onPressed: _hasConfirmedReview ? widget.onConfirm : null,
           style: ElevatedButton.styleFrom(
@@ -747,10 +714,7 @@ class _ApprovalDialogState extends State<_ApprovalDialog> {
 }
 
 class VerificationDocumentsSection extends StatefulWidget {
-  const VerificationDocumentsSection({
-    super.key,
-    required this.sellerId,
-  });
+  const VerificationDocumentsSection({super.key, required this.sellerId});
 
   final String sellerId;
 
@@ -761,7 +725,6 @@ class VerificationDocumentsSection extends StatefulWidget {
 
 class _VerificationDocumentsSectionState
     extends State<VerificationDocumentsSection> {
-
   static const cream = Color(0xFFFFF8F4);
   static const orange = Color(0xFFE96B32);
   static const darkBrown = Color(0xFF3D3029);
@@ -810,20 +773,16 @@ class _VerificationDocumentsSectionState
 
       setState(() {
         _isLoading = false;
-        _errorMessage =
-            'Unable to load verification documents. Please retry.';
+        _errorMessage = 'Unable to load verification documents. Please retry.';
       });
     }
   }
 
-  Future<void> _viewDocument(
-    Map<String, dynamic> document,
-  ) async {
+  Future<void> _viewDocument(Map<String, dynamic> document) async {
     if (_openingDocumentId != null) return;
 
     final documentId = document['id']?.toString() ?? '';
-    final storagePath =
-        document['storage_path']?.toString().trim() ?? '';
+    final storagePath = document['storage_path']?.toString().trim() ?? '';
 
     if (documentId.isEmpty || storagePath.isEmpty) {
       setState(() {
@@ -862,8 +821,7 @@ class _VerificationDocumentsSectionState
       if (!mounted) return;
 
       setState(() {
-        _errorMessage =
-            'Unable to create a secure document link or open it.';
+        _errorMessage = 'Unable to create a secure document link or open it.';
       });
     } finally {
       if (mounted) {
@@ -901,9 +859,7 @@ class _VerificationDocumentsSectionState
         if (_isLoading && _documents.isEmpty)
           const Padding(
             padding: EdgeInsets.all(20),
-            child: Center(
-              child: CircularProgressIndicator(color: orange),
-            ),
+            child: Center(child: CircularProgressIndicator(color: orange)),
           )
         else ...[
           if (_isLoading) const LinearProgressIndicator(),
@@ -925,10 +881,8 @@ class _VerificationDocumentsSectionState
             ),
           ..._documents.map((document) {
             final documentId = document['id']?.toString() ?? '';
-            final status =
-                (document['status'] ?? 'unknown').toString();
-            final reviewNote =
-                document['review_note']?.toString().trim() ?? '';
+            final status = (document['status'] ?? 'unknown').toString();
+            final reviewNote = document['review_note']?.toString().trim() ?? '';
             final isOpening = _openingDocumentId == documentId;
 
             return Container(
@@ -938,9 +892,7 @@ class _VerificationDocumentsSectionState
               decoration: BoxDecoration(
                 color: cream,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFF0E5DE),
-                ),
+                border: Border.all(color: const Color(0xFFF0E5DE)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -953,9 +905,7 @@ class _VerificationDocumentsSectionState
                     ),
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    (document['file_name'] ?? 'Unnamed file').toString(),
-                  ),
+                  Text((document['file_name'] ?? 'Unnamed file').toString()),
                   const SizedBox(height: 7),
                   Text('Status: $status'),
                   if (reviewNote.isNotEmpty) ...[
@@ -971,15 +921,11 @@ class _VerificationDocumentsSectionState
                         ? const SizedBox(
                             width: 16,
                             height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.open_in_new),
                     label: const Text('View document'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: orange,
-                    ),
+                    style: OutlinedButton.styleFrom(foregroundColor: orange),
                   ),
                 ],
               ),

@@ -6,6 +6,7 @@ import '../../users/presentation/users_screen.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../../locations/presentation/locations_screen.dart';
 import '../../admin_profile/presentation/admin_profile_screen.dart';
+import '../../production_reports/presentation/production_reports_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../auth/presentation/login_screen.dart';
 
@@ -34,6 +35,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     'Egg Listings',
     'Order Summary',
     'Locations',
+    'Production Reports',
     'Admin Profile',
   ];
 
@@ -44,6 +46,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     Icons.egg_outlined,
     Icons.receipt_long_outlined,
     Icons.location_on_outlined,
+    Icons.fact_check_outlined,
     Icons.account_circle_outlined,
   ];
 
@@ -102,12 +105,13 @@ class _AdminLayoutState extends State<AdminLayout> {
         return const LocationsScreen();
 
       case 6:
+        return const ProductionReportsScreen();
+
+      case 7:
         return const AdminProfileScreen();
 
       default:
-        return _comingSoonScreen(
-          _menuLabels[_selectedIndex],
-        );
+        return _comingSoonScreen(_menuLabels[_selectedIndex]);
     }
   }
 
@@ -116,11 +120,7 @@ class _AdminLayoutState extends State<AdminLayout> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.construction_outlined,
-            size: 55,
-            color: orange,
-          ),
+          const Icon(Icons.construction_outlined, size: 55, color: orange),
           const SizedBox(height: 15),
           Text(
             '$title module',
@@ -144,50 +144,58 @@ class _AdminLayoutState extends State<AdminLayout> {
     return Container(
       width: 245,
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Image.asset(
-              'assets/images/geoegg_logo.png',
-              width: 150,
-              height: 132,
-              fit: BoxFit.contain,
-            ),
-          ),
-          const SizedBox(height: 5),
-          const Center(
-            child: Text(
-              'CAVD ADMINISTRATION',
-              style: TextStyle(
-                fontSize: 9,
-                letterSpacing: 1,
-                color: orange,
-                fontWeight: FontWeight.bold,
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Image.asset(
+                      'assets/images/geoegg_logo.png',
+                      width: 150,
+                      height: 104,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  const Center(
+                    child: Text(
+                      'CAVD ADMINISTRATION',
+                      style: TextStyle(
+                        fontSize: 9,
+                        letterSpacing: 1,
+                        color: orange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 12, bottom: 10),
+                    child: Text(
+                      'MAIN MENU',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: muted,
+                      ),
+                    ),
+                  ),
+                  ...List.generate(_menuLabels.length, (index) {
+                    return _sidebarItem(index, inDrawer: inDrawer);
+                  }),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 42),
-          const Padding(
-            padding: EdgeInsets.only(left: 12, bottom: 13),
-            child: Text(
-              'MAIN MENU',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-                color: muted,
-              ),
-            ),
-          ),
-          ...List.generate(_menuLabels.length, (index) {
-            return _sidebarItem(index, inDrawer: inDrawer);
-          }),
-          const Spacer(),
           const Divider(color: Color(0xFFF0E5DE)),
           _sidebarItem(
-            7,
+            8,
             label: 'Log Out',
             icon: Icons.logout,
             inDrawer: inDrawer,
@@ -208,31 +216,27 @@ class _AdminLayoutState extends State<AdminLayout> {
     final itemIcon = icon ?? _menuIcons[index];
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 7),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Material(
         color: selected ? peach : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () async {
-            if (index == 7) {
+            if (index == 8) {
               final shouldLogout = await showDialog<bool>(
                 context: context,
                 builder: (dialogContext) {
                   return AlertDialog(
                     title: const Text('Log Out'),
-                    content: const Text(
-                      'Are you sure you want to log out?',
-                    ),
+                    content: const Text('Are you sure you want to log out?'),
                     actions: [
                       TextButton(
-                        onPressed: () =>
-                            Navigator.pop(dialogContext, false),
+                        onPressed: () => Navigator.pop(dialogContext, false),
                         child: const Text('Cancel'),
                       ),
                       ElevatedButton(
-                        onPressed: () =>
-                            Navigator.pop(dialogContext, true),
+                        onPressed: () => Navigator.pop(dialogContext, true),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: orange,
                           foregroundColor: Colors.white,
@@ -251,9 +255,7 @@ class _AdminLayoutState extends State<AdminLayout> {
                   if (!mounted) return;
 
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (_) => const LoginScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
                     (route) => false,
                   );
                 } catch (e) {
@@ -279,24 +281,16 @@ class _AdminLayoutState extends State<AdminLayout> {
             }
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 15,
-              vertical: 13,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
             child: Row(
               children: [
-                Icon(
-                  itemIcon,
-                  size: 20,
-                  color: selected ? orange : muted,
-                ),
+                Icon(itemIcon, size: 20, color: selected ? orange : muted),
                 const SizedBox(width: 13),
                 Text(
                   itemLabel,
                   style: TextStyle(
                     color: selected ? darkBrown : muted,
-                    fontWeight:
-                        selected ? FontWeight.bold : FontWeight.w500,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.w500,
                     fontSize: 14,
                   ),
                 ),
@@ -311,18 +305,23 @@ class _AdminLayoutState extends State<AdminLayout> {
   Widget _topBar({required bool compact}) {
     return Container(
       height: 76,
-      padding: EdgeInsets.symmetric(horizontal: compact ? 16 : 35),
+      padding: EdgeInsets.only(
+        left: compact ? 8 : 35,
+        right: compact ? 16 : 35,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFF0E5DE)),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFFF0E5DE))),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
+          Flexible(
+            fit: FlexFit.tight,
             child: Text(
-              _menuLabels[_selectedIndex],
+              _selectedIndex == 7
+                  ? 'Account Settings'
+                  : _menuLabels[_selectedIndex],
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
@@ -332,35 +331,43 @@ class _AdminLayoutState extends State<AdminLayout> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          const Icon(Icons.account_circle_outlined, color: orange, size: 29),
-          if (!compact || MediaQuery.sizeOf(context).width >= 420) ...[
-            const SizedBox(width: 10),
-            const Flexible(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'CAVD Administrator',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: darkBrown,
-                    ),
-                  ),
-                  Text(
-                    'Administrator',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11, color: muted),
-                  ),
-                ],
+          const SizedBox(width: 16),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.account_circle_outlined,
+                color: orange,
+                size: 29,
               ),
-            ),
-          ],
+              if (!compact || MediaQuery.sizeOf(context).width >= 520) ...[
+                const SizedBox(width: 10),
+                const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'CAVD Administrator',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: darkBrown,
+                      ),
+                    ),
+                    Text(
+                      'Administrator',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: muted),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
@@ -380,9 +387,7 @@ class _AdminLayoutState extends State<AdminLayout> {
             drawer: Drawer(
               width: 280,
               backgroundColor: Colors.white,
-              child: SafeArea(
-                child: _sidebar(inDrawer: true),
-              ),
+              child: SafeArea(child: _sidebar(inDrawer: true)),
             ),
             body: Column(
               children: [
@@ -400,7 +405,8 @@ class _AdminLayoutState extends State<AdminLayout> {
                         builder: (drawerContext) => IconButton(
                           tooltip: 'Open navigation menu',
                           icon: const Icon(Icons.menu, color: darkBrown),
-                          onPressed: () => Scaffold.of(drawerContext).openDrawer(),
+                          onPressed: () =>
+                              Scaffold.of(drawerContext).openDrawer(),
                         ),
                       ),
                       Expanded(child: _topBar(compact: true)),

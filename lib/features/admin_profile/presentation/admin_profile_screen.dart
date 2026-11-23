@@ -250,7 +250,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Admin Profile',
+            'My Account',
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -259,7 +259,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'View and manage your CAVD administrator profile.',
+            'Manage your administrator profile and account details.',
             style: TextStyle(color: muted, fontSize: 14),
           ),
           const SizedBox(height: 30),
@@ -333,7 +333,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
           const SizedBox(height: 25),
           const Text(
-            'Account Information',
+            'Account Details',
             style: TextStyle(
               fontSize: 19,
               fontWeight: FontWeight.bold,

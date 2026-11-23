@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,8 +10,7 @@ class EggListingsScreen extends StatefulWidget {
 
 class _EggListingsScreenState extends State<EggListingsScreen> {
   final SupabaseClient _supabase = Supabase.instance.client;
-  final TextEditingController _searchController =
-      TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   static const Color cream = Color(0xFFFFF8F4);
   static const Color peach = Color(0xFFFBE3D5);
@@ -34,8 +32,9 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
         .trim();
   }
 
-  late final Stream<List<Map<String, dynamic>>> _listingsStream =
-      _supabase.from('egg_listings').stream(primaryKey: ['id']);
+  late final Stream<List<Map<String, dynamic>>> _listingsStream = _supabase
+      .from('egg_listings')
+      .stream(primaryKey: ['id']);
 
   @override
   void dispose() {
@@ -57,8 +56,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
     final parts = <String>[
       if (piece is num && piece > 0)
         '₱${(piece / 100).toStringAsFixed(2)} / piece',
-      if (tray is num && tray > 0)
-        '₱${(tray / 100).toStringAsFixed(2)} / tray',
+      if (tray is num && tray > 0) '₱${(tray / 100).toStringAsFixed(2)} / tray',
     ];
 
     return parts.isEmpty ? 'Price not set' : parts.join(' · ');
@@ -83,10 +81,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
         : '${status[0].toUpperCase()}${status.substring(1)}';
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 7,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
@@ -104,31 +99,30 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
 
   List<Map<String, dynamic>> _filterListings(
     List<Map<String, dynamic>> listings,
-    ) {
-      final search = _normalizeSearchText(_searchController.text);
+  ) {
+    final search = _normalizeSearchText(_searchController.text);
 
-      return listings.where((data) {
-        final name = _normalizeSearchText(data['name']);
-        final eggType = _normalizeSearchText(data['egg_type']);
-        final sellerId = _normalizeSearchText(data['seller_id']);
-        final location = _normalizeSearchText(data['location_name']);
+    return listings.where((data) {
+      final name = _normalizeSearchText(data['name']);
+      final eggType = _normalizeSearchText(data['egg_type']);
+      final sellerId = _normalizeSearchText(data['seller_id']);
+      final location = _normalizeSearchText(data['location_name']);
 
-        final status = _normalizeSearchText(
-          data['status'] ?? 'available',
-        );
+      final status = _normalizeSearchText(data['status'] ?? 'available');
 
-        final matchesSearch = search.isEmpty ||
-            name.contains(search) ||
-            eggType.contains(search) ||
-            location.contains(search) ||
-            sellerId.contains(search);
+      final matchesSearch =
+          search.isEmpty ||
+          name.contains(search) ||
+          eggType.contains(search) ||
+          location.contains(search) ||
+          sellerId.contains(search);
 
-        final matchesStatus = _selectedStatus == 'all' ||
-            status == _selectedStatus;
+      final matchesStatus =
+          _selectedStatus == 'all' || status == _selectedStatus;
 
-        return matchesSearch && matchesStatus;
-      }).toList();
-    }
+      return matchesSearch && matchesStatus;
+    }).toList();
+  }
 
   Widget _filterButton(String value, String label) {
     final selected = _selectedStatus == value;
@@ -141,29 +135,31 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
       },
       selectedColor: peach,
       backgroundColor: Colors.white,
-      side: BorderSide(
-        color: selected ? orange : borderColor,
-      ),
+      side: BorderSide(color: selected ? orange : borderColor),
       showCheckmark: false,
       labelStyle: TextStyle(
         color: selected ? orange : muted,
-        fontWeight:
-            selected ? FontWeight.w600 : FontWeight.normal,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
       ),
     );
   }
 
-  void _showListingDetails(
-    BuildContext context,
-    Map<String, dynamic> data,
-  ) {
+  Future<Map<String, dynamic>?> _loadSellerDetails(String sellerId) async {
+    return _supabase
+        .from('profiles')
+        .select('name, email')
+        .eq('id', sellerId)
+        .maybeSingle();
+  }
+
+  void _showListingDetails(BuildContext context, Map<String, dynamic> data) {
     final name = _value(data['name'], 'Unnamed Eggs');
     final eggType = _value(data['egg_type'], 'Unknown type');
-    final sellerId = _value(data['seller_id'], 'Unknown seller');
-    final description = _value(
-      data['description'],
-      'No description provided.',
-    );
+    final sellerId = data['seller_id']?.toString();
+    final sellerDetails = sellerId == null || sellerId.trim().isEmpty
+        ? Future<Map<String, dynamic>?>.value(null)
+        : _loadSellerDetails(sellerId);
+    final description = _value(data['description'], 'No description provided.');
     final quantity = (data['quantity'] as num?)?.toInt() ?? 0;
     final status = _value(data['status'], 'available').toLowerCase();
 
@@ -210,8 +206,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
                           ),
                         ),
                         IconButton(
-                          onPressed: () =>
-                              Navigator.pop(dialogContext),
+                          onPressed: () => Navigator.pop(dialogContext),
                           icon: const Icon(Icons.close),
                         ),
                       ],
@@ -223,13 +218,52 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
                     _detailRow('Price', _priceText(data)),
                     _detailRow(
                       'Location',
-                      _value(
-                        data['location_name'],
-                        'No location assigned',
-                      ),
+                      _value(data['location_name'], 'No location assigned'),
                     ),
                     _detailRow('Stock', '$quantity pieces'),
-                    _detailRow('Seller Account ID', sellerId),
+                    FutureBuilder<Map<String, dynamic>?>(
+                      future: sellerDetails,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          debugPrint(
+                            'EGG LISTING SELLER DETAILS ERROR: '
+                            '${snapshot.error}',
+                          );
+                          return _detailRow(
+                            'Seller',
+                            'Seller profile relationship unavailable.',
+                          );
+                        }
+
+                        if (snapshot.connectionState != ConnectionState.done) {
+                          return _detailRow(
+                            'Seller',
+                            'Loading seller details...',
+                          );
+                        }
+
+                        final seller = snapshot.data;
+                        if (seller == null) {
+                          return _detailRow(
+                            'Seller',
+                            'Seller profile relationship unavailable.',
+                          );
+                        }
+
+                        final sellerName = _value(
+                          seller['name'],
+                          'Name unavailable',
+                        );
+                        final sellerEmail = _value(
+                          seller['email'],
+                          'Email unavailable',
+                        );
+                        return _detailRow(
+                          'Seller',
+                          '$sellerName\n$sellerEmail',
+                        );
+                      },
+                    ),
                     const SizedBox(height: 12),
                     const Text(
                       'Description',
@@ -239,44 +273,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 7),
-                    Text(
-                      description,
-                      style: const TextStyle(color: muted),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(dialogContext);
-                          _changeListingStatus(
-                            context,
-                            data['id'].toString(),
-                            status,
-                          );
-                        },
-                        icon: Icon(
-                          status == 'available'
-                              ? Icons.block
-                              : Icons.check_circle_outline,
-                        ),
-                        label: Text(
-                          status == 'available'
-                              ? 'Mark Unavailable'
-                              : 'Mark Available',
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: orange,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 15,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
+                    Text(description, style: const TextStyle(color: muted)),
                   ],
                 ),
               ),
@@ -297,10 +294,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
             width: 135,
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: muted,
-              ),
+              style: const TextStyle(fontSize: 13, color: muted),
             ),
           ),
           Expanded(
@@ -318,84 +312,6 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
     );
   }
 
-  Future<void> _changeListingStatus(
-    BuildContext context,
-    String listingId,
-    String currentStatus,
-  ) async {
-    final newStatus = currentStatus == 'available'
-        ? 'unavailable'
-        : 'available';
-
-    final actionText = newStatus == 'available'
-        ? 'available'
-        : 'unavailable';
-
-    final shouldChange = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Change Listing Status'),
-          content: Text(
-            'Are you sure you want to mark this listing '
-            'as $actionText?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: orange,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Confirm'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (shouldChange != true || !context.mounted) return;
-
-    try {
-      final changed = await _supabase
-          .from('egg_listings')
-          .update({'status': newStatus})
-          .eq('id', listingId)
-          .select('id');
-
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            changed.isEmpty
-                ? 'Failed to update listing status: not allowed.'
-                : 'Listing marked as $actionText.',
-          ),
-        ),
-      );
-    } catch (e) {
-      debugPrint('ADMIN LISTING STATUS ERROR: $e');
-
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Failed to update listing status. '
-            'Check your connection and permissions.',
-          ),
-        ),
-      );
-    }
-  }
-
   Widget _listingTable(
     BuildContext context,
     List<Map<String, dynamic>> listings,
@@ -409,127 +325,154 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(cream),
-            headingTextStyle: const TextStyle(
-              color: muted,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-            dataTextStyle: const TextStyle(
-              color: darkBrown,
-              fontSize: 13,
-            ),
-            horizontalMargin: 24,
-            columnSpacing: 32,
-            headingRowHeight: 54,
-            dataRowMinHeight: 72,
-            dataRowMaxHeight: 85,
-            columns: const [
-              DataColumn(label: Text('EGG LISTING')),
-              DataColumn(label: Text('PRICE')),
-              DataColumn(label: Text('STOCK')),
-              DataColumn(label: Text('LOCATION')),
-              DataColumn(label: Text('STATUS')),
-              DataColumn(label: Text('ACTION')),
-            ],
-            rows: listings.map((data) {
-              final name = _value(data['name'], 'Unnamed Eggs');
-              final eggType = _value(data['egg_type'], 'Unknown type');
-              final quantity =
-                  (data['quantity'] as num?)?.toInt() ?? 0;
-              final status =
-                  _value(data['status'], 'available').toLowerCase();
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final tableWidth = constraints.maxWidth < 1040
+                ? 1040.0
+                : constraints.maxWidth;
 
-              return DataRow(
-                cells: [
-                  DataCell(
-                    SizedBox(
-                      width: 190,
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: peach,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.egg_alt_outlined,
-                              color: orange,
-                              size: 23,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: tableWidth,
+                child: DataTable(
+                  headingRowColor: WidgetStateProperty.all(cream),
+                  headingTextStyle: const TextStyle(
+                    color: muted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  dataTextStyle: const TextStyle(
+                    color: darkBrown,
+                    fontSize: 13,
+                  ),
+                  horizontalMargin: 20,
+                  columnSpacing: 18,
+                  headingRowHeight: 54,
+                  dataRowMinHeight: 72,
+                  dataRowMaxHeight: 85,
+                  columns: const [
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(2.1),
+                      label: Text('EGG LISTING'),
+                    ),
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(1.15),
+                      label: Text('PRICE'),
+                    ),
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(0.85),
+                      label: Text('STOCK'),
+                    ),
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(1.7),
+                      label: Text('LOCATION'),
+                    ),
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(1),
+                      label: Text('STATUS'),
+                    ),
+                    DataColumn(
+                      columnWidth: FlexColumnWidth(1.35),
+                      label: Text('ACTION'),
+                    ),
+                  ],
+                  rows: listings.map((data) {
+                    final name = _value(data['name'], 'Unnamed Eggs');
+                    final eggType = _value(data['egg_type'], 'Unknown type');
+                    final quantity = (data['quantity'] as num?)?.toInt() ?? 0;
+                    final status = _value(
+                      data['status'],
+                      'available',
+                    ).toLowerCase();
+
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          SizedBox(
+                            width: 190,
+                            child: Row(
                               children: [
-                                Text(
-                                  name,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: peach,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.egg_alt_outlined,
+                                    color: orange,
+                                    size: 23,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  eggType,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: muted,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        eggType,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: muted,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    SizedBox(
-                      width: 160,
-                      child: Text(_priceText(data)),
-                    ),
-                  ),
-                  DataCell(Text('$quantity pieces')),
-                  DataCell(
-                    SizedBox(
-                      width: 150,
-                      child: Text(
-                        _value(
-                          data['location_name'],
-                          'No location assigned',
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                  DataCell(_statusChip(status)),
-                  DataCell(
-                    TextButton.icon(
-                      onPressed: () =>
-                          _showListingDetails(context, data),
-                      icon: const Icon(
-                        Icons.visibility_outlined,
-                        size: 17,
-                      ),
-                      label: const Text('View Details'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: orange,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
+                        DataCell(
+                          SizedBox(width: 160, child: Text(_priceText(data))),
+                        ),
+                        DataCell(Text('$quantity pieces')),
+                        DataCell(
+                          SizedBox(
+                            width: 150,
+                            child: Text(
+                              _value(
+                                data['location_name'],
+                                'No location assigned',
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        DataCell(_statusChip(status)),
+                        DataCell(
+                          TextButton.icon(
+                            onPressed: () => _showListingDetails(context, data),
+                            icon: const Icon(
+                              Icons.visibility_outlined,
+                              size: 17,
+                            ),
+                            label: const Text('View Details'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: orange,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -541,9 +484,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
       stream: _listingsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: orange),
-          );
+          return const Center(child: CircularProgressIndicator(color: orange));
         }
 
         if (snapshot.hasError) {
@@ -561,8 +502,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
           );
         }
 
-        final allListings =
-            snapshot.data ?? <Map<String, dynamic>>[];
+        final allListings = snapshot.data ?? <Map<String, dynamic>>[];
 
         final filteredListings = _filterListings(allListings);
 
@@ -592,10 +532,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
               const SizedBox(height: 7),
               const Text(
                 'Monitor marketplace egg listings, prices, stock, and availability.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: muted,
-                ),
+                style: TextStyle(fontSize: 14, color: muted),
               ),
               const SizedBox(height: 26),
 
@@ -630,10 +567,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: 'Search by name, egg type, seller, or location...',
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    color: muted,
-                  ),
+                  prefixIcon: const Icon(Icons.search, color: muted),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           onPressed: () {
@@ -674,10 +608,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
 
               Row(
                 children: [
-                  const Icon(
-                    Icons.inventory_2_outlined,
-                    color: orange,
-                  ),
+                  const Icon(Icons.inventory_2_outlined, color: orange),
                   const SizedBox(width: 9),
                   Text(
                     '${filteredListings.length} listing'
@@ -735,12 +666,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
     );
   }
 
-  Widget _summaryCard(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _summaryCard(String label, String value, IconData icon, Color color) {
     return Container(
       width: 220,
       padding: const EdgeInsets.all(20),
@@ -773,13 +699,7 @@ class _EggListingsScreenState extends State<EggListingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: muted,
-                  ),
-                ),
+                Text(label, style: const TextStyle(fontSize: 12, color: muted)),
               ],
             ),
           ),
